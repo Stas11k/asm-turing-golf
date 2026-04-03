@@ -17,7 +17,7 @@ find_end:
     jne find_end
     mov byte ptr [si-1], 0
 
-    mov ah, 3Dh
+    mov ax, 3D00h
     int 21h
     xchg ax, bx
     mov ah, 3Fh
@@ -27,8 +27,29 @@ find_end:
     xchg ax, di
     mov byte ptr [file_buf + di], 0
 
+    mov si, offset file_buf
+
+find_header:
+    lodsb
+    or al, al
+    jz done
+    cmp al, ';'
+    je skip_comment
+    cmp al, 32
+    jbe find_header
+    dec si
+    
+done:
     mov ah, 4Ch
     int 21h
+
+skip_comment:
+    lodsb
+    or al, al
+    jz done
+    cmp al, 0Ah
+    jne skip_comment
+    jmp find_header
 
 file_buf label byte
 
