@@ -91,8 +91,8 @@ done:
     mov ah, 4Ch
     int 21h
 
-start_name db 9 dup(0)
-halt_name  db 9 dup(0)
+start_name db 9 dup(?)
+halt_name  db 9 dup(?)
 file_buf label byte
 
 END start
