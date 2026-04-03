@@ -13,7 +13,7 @@ skip_spaces:
 
 find_end:
     lodsb
-    cmp al, 0Dh
+    cmp al, 13
     jne find_end
     mov byte ptr [si-1], 0
 
@@ -31,38 +31,61 @@ find_end:
 
 find_header:
     lodsb
-    cbw
-    test ax, ax
+    test al, al
     jz done
     cmp al, ';'
-    je skip_comment
+    je skip_header_line
     cmp al, 32
     jbe find_header
     dec si
     mov di, offset start_name
     call get_token
     mov di, offset halt_name
-    
+    call get_token
+    jmp find_rules
+
+skip_header_line:
+    call skip_line_sub
+    jmp find_header
+
+find_rules:
+    lodsb
+    test al, al
+    jz done
+    cmp al, 32
+    jbe find_rules
+    cmp al, ';'
+    je skip_rule_line
+    cmp al, '-'
+    jne skip_rule_line
+    cmp word ptr [si], '--'
+    je done
+
+skip_rule_line:
+    call skip_line_sub
+    jmp find_rules
+
 get_token:
     lodsb
-    cmp al, ' '
+    cmp al, 32
     jbe get_token
     
 copy_loop:
     stosb
     lodsb
-    cmp al, ' '
+    cmp al, 32
     ja copy_loop
-    mov [di-1], bh
+    mov [di], bh
     ret
 
-skip_comment:
+skip_line_sub:
     lodsb
-    or al, al
-    jz done
-    cmp al, 0Ah
-    jne skip_comment
-    jmp find_header
+    test al, al
+    jz done_ret
+    cmp al, 10
+    jne skip_line_sub
+done_ret:
+    ret
 
 done:
     mov ah, 4Ch
