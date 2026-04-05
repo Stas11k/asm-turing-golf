@@ -38,10 +38,10 @@ find_header:
     cmp al, 32
     jbe find_header
     dec si
-    mov di, offset start_name
-    call get_token
-    mov di, offset halt_name
-    call get_token
+    mov di, offset start_id
+    call get_token_to_di
+    mov di, offset halt_id
+    call get_token_to_di
     jmp find_rules
 
 skip_header_line:
@@ -65,17 +65,24 @@ skip_rule_line:
     call skip_line_sub
     jmp find_rules
 
-get_token:
+get_token_to_di:
+    xor cx, cx
+
+gt_skip:
     lodsb
     cmp al, 32
-    jbe get_token
+    jbe gt_skip
+    cmp al, '_'
+    jne gt_loop
+    xor al, al
     
-copy_loop:
-    stosb
+gt_loop:
+    add cl, al
+    rol cl, 1
     lodsb
     cmp al, 32
-    ja copy_loop
-    mov [di], bh
+    ja gt_loop
+    mov [di], cl
     ret
 
 skip_line_sub:
@@ -91,8 +98,8 @@ done:
     mov ah, 4Ch
     int 21h
 
-start_name db 9 dup(?)
-halt_name  db 9 dup(?)
+start_id  db ?
+halt_id   db ?
 file_buf label byte
 
 END start
