@@ -8,14 +8,14 @@ start:
 skip_spaces:
     lodsb
     cmp al,' '
-    je skip_spaces
+    jbe skip_spaces
     lea dx, [si-1]
 
 find_end:
     lodsb
     cmp al, 13
     jne find_end
-    mov byte ptr [si-1], 0
+    mov [si-1], bh
 
     mov ax, 3D00h
     int 21h
@@ -28,42 +28,36 @@ find_end:
     mov [file_buf + di], bh
 
     mov si, offset file_buf
-
-find_header:
-    lodsb
-    test al, al
-    jz done
-    cmp al, ';'
-    je skip_header_line
-    cmp al, 32
-    jbe find_header
-    dec si
     mov di, offset start_id
-    call get_token_to_di
-    mov di, offset halt_id
-    call get_token_to_di
-    jmp find_rules
 
-skip_header_line:
-    call skip_line_sub
-    jmp find_header
-
-find_rules:
+parse_main:
     lodsb
     test al, al
     jz done
-    cmp al, 32
-    jbe find_rules
     cmp al, ';'
-    je skip_rule_line
+    je skip_l
+    cmp al, 32
+    jbe parse_main
     cmp al, '-'
-    jne skip_rule_line
-    cmp word ptr [si], '--'
     je done
+    dec si
 
-skip_rule_line:
-    call skip_line_sub
-    jmp find_rules
+parse_line_tokens:
+    call get_token_to_di
+    inc di
+    
+    mov al, [si]
+    cmp al, 13
+    ja parse_line_tokens
+    jmp parse_main
+
+skip_l:
+    lodsb
+    test al, al
+    jz done
+    cmp al, 10
+    jne skip_l
+    jmp parse_main
 
 get_token_to_di:
     xor cx, cx
@@ -85,21 +79,12 @@ gt_loop:
     mov [di], cl
     ret
 
-skip_line_sub:
-    lodsb
-    test al, al
-    jz done_ret
-    cmp al, 10
-    jne skip_line_sub
-done_ret:
-    ret
-
 done:
-    mov ah, 4Ch
-    int 21h
+    ret
 
 start_id  db ?
 halt_id   db ?
-file_buf label byte
+rules_data label byte
+file_buf  equ start_id + 3000
 
 END start
