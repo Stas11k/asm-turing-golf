@@ -107,6 +107,37 @@ copy_tape_loop:
 tape_done:
     mov [di], bh
 
+    mov al, [start_id]
+    mov bx, 8000h
+
+exec_loop:
+    cmp al, [halt_id]
+    je done
+    mov dh, [bx]
+    xchg al, dl
+    mov si, offset rules_data
+
+find_rule:
+    cmp si, offset file_buf
+    jae done
+    cmp word ptr [si], dx
+    je apply_rule
+    add si, 5
+    jmp find_rule
+
+apply_rule:
+    inc si
+    inc si
+    lodsb
+    xchg ax, bp
+    lodsw
+    mov [bx], al
+    mov al, ah
+    cbw
+    add bx, ax
+    xchg ax, bp
+    jmp exec_loop
+
 done:
     ret
 
