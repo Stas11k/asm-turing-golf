@@ -43,10 +43,25 @@ parse_main:
     dec si
 
 parse_line_tokens:
-    call get_token_to_di
-    inc di
-    
-    mov al, [si]
+    xor cx, cx
+
+gt_skip:
+    lodsb
+    cmp al, 32
+    jbe gt_skip
+    cmp al, '_'
+    jne gt_loop
+    xor al, al
+
+gt_loop:
+    add cl, al
+    rol cl, 1
+    lodsb
+    cmp al, 32
+    ja gt_loop
+    xchg ax, cx
+    stosb
+    xchg ax, cx
     cmp al, 13
     ja parse_line_tokens
     jmp parse_main
@@ -58,26 +73,6 @@ skip_l:
     cmp al, 10
     jne skip_l
     jmp parse_main
-
-get_token_to_di:
-    xor cx, cx
-
-gt_skip:
-    lodsb
-    cmp al, 32
-    jbe gt_skip
-    cmp al, '_'
-    jne gt_loop
-    xor al, al
-    
-gt_loop:
-    add cl, al
-    rol cl, 1
-    lodsb
-    cmp al, 32
-    ja gt_loop
-    mov [di], cl
-    ret
 
 done:
     ret
