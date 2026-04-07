@@ -7,7 +7,7 @@ start:
 
 skip_spaces:
     lodsb
-    cmp al,' '
+    cmp al, 32
     jbe skip_spaces
     lea dx, [si-1]
 
@@ -33,13 +33,13 @@ find_end:
 parse_main:
     lodsb
     test al, al
-    jz done
+    jz load_tape_init
     cmp al, ';'
     je skip_l
     cmp al, 32
     jbe parse_main
     cmp al, '-'
-    je done
+    je find_tape_start
     dec si
 
 parse_line_tokens:
@@ -68,11 +68,27 @@ gt_loop:
 
 skip_l:
     lodsb
-    test al, al
-    jz done
     cmp al, 10
     jne skip_l
     jmp parse_main
+
+find_tape_start:
+    lodsb
+    cmp al, 10
+    jne find_tape_start
+
+load_tape_init:
+    mov di, 8000h
+
+copy_tape_loop:
+    lodsb
+    cmp al, 13
+    jbe tape_done
+    stosb
+    jmp copy_tape_loop
+
+tape_done:
+    mov [di], bh
 
 done:
     ret
