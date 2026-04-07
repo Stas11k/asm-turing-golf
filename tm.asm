@@ -3,6 +3,10 @@
 ORG 100h
 
 start:
+    mov di, 8000h - 10000
+    mov cx, 20001
+    xor al, al
+    rep stosb
     mov si, 81h
 
 skip_spaces:
