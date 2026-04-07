@@ -44,6 +44,7 @@ parse_main:
 
 parse_line_tokens:
     xor cx, cx
+    xor dx, dx
 
 gt_skip:
     lodsb
@@ -54,12 +55,28 @@ gt_skip:
     xor al, al
 
 gt_loop:
+    mov bl, al
+    inc dx
     add cl, al
     rol cl, 1
     lodsb
     cmp al, 32
     ja gt_loop
     xchg ax, cx
+    cmp dx, 1
+    jne store_token
+    mov al, bl
+    cmp al, 'L'
+    je is_l
+    cmp al, 'R'
+    jne store_token
+    mov al, 1
+    jmp store_token
+
+is_l:
+    mov al, 0FFh
+
+store_token:
     stosb
     xchg ax, cx
     cmp al, 13
