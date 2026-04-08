@@ -36,7 +36,7 @@ find_end:
 parse_main:
     lodsb
     or al, al
-    jz load_tape_init
+    jz no_tape
     cmp al, ';'
     je skip_l
     cmp al, 32
@@ -66,22 +66,24 @@ gt_loop:
     cmp al, 32
     ja gt_loop
     xchg ax, cx
-    cmp dx, 1
+    dec dx
     jne store
     mov al, bl
-    cmp al, 'L'
-    je is_l
     cmp al, 'R'
+    je is_r
+    cmp al, 'L'
     jne store
-    mov al, 1
+    mov al, 0FFh
     jmp store
 
-is_l:
-    mov al, 0FFh
+is_r:
+    mov al, 1
 
 store:
     stosb
     xchg ax, cx
+    or al, al
+    jz no_tape
     cmp al, 13
     ja parse_tok
     jmp parse_main
@@ -98,48 +100,47 @@ skip_t:
     jne skip_t
 
 load_tape_init:
-    mov di, 8000h
+    mov bx, 8000h
+    mov di, bx
 
-copy_tape_loop:
+copy_t:
     lodsb
     cmp al, 13
-    jbe tape_done
+    jbe t_done
     stosb
-    jmp copy_tape_loop
+    jmp copy_t
 
-tape_done:
-    mov [di], bh
-
-    mov al, [start_id]
+no_tape:
+    mov bp, di
     mov bx, 8000h
 
-exec_loop:
-    cmp al, [halt_id]
+t_done:
+    mov [di], bh
+    mov ax, word ptr [start_id]
+
+exec:
+    cmp al, ah
     je done
-    mov dh, [bx]
     xchg al, dl
+    mov dh, [bx]
     mov si, offset rules_data
 
-find_rule:
-    cmp si, offset file_buf
+find_r:
+    cmp si, bp
     jae done
     cmp word ptr [si], dx
-    je apply_rule
+    je appl
     add si, 5
-    jmp find_rule
+    jmp find_r
 
-apply_rule:
-    inc si
-    inc si
-    lodsb
-    xchg ax, bp
-    lodsw
+appl:
+    mov ax, [si+3]
     mov [bx], al
-    mov al, ah
+    xchg al, ah
     cbw
     add bx, ax
-    xchg ax, bp
-    jmp exec_loop
+    mov al, [si+2]
+    jmp exec
 
 done:
     mov si, 8000h - 10000
