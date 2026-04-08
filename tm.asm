@@ -115,7 +115,6 @@ no_tape:
     mov bx, 8000h
 
 t_done:
-    mov [di], bh
     mov ax, word ptr [start_id]
 
 exec:
@@ -128,7 +127,7 @@ exec:
 find_r:
     cmp si, bp
     jae done
-    cmp word ptr [si], dx
+    cmp [si], dx
     je appl
     add si, 5
     jmp find_r
@@ -145,55 +144,35 @@ appl:
 done:
     mov si, 8000h - 10000
     mov cx, 20001
-
-find_left:
+f_l:
     lodsb
-    test al, al
-    jnz found_left
-    loop find_left
-    jmp exit_prog
-
-found_left:
+    or al, al
+    loopz f_l
+    jz empty
     dec si
     mov dx, si
     mov di, 8000h + 10000
-    mov cx, 20001
-    std
-
-find_right_loop:
-    mov al, [di]
-    test al, al
-    jnz found_right
+f_r:
+    cmp byte ptr [di], 0
+    jne f_r_ok
     dec di
-    loop find_right_loop
-
-found_right:
-    cld
+    jmp f_r
+f_r_ok:
     mov si, dx
-
-print_loop:
-    lodsb
-    test al, al
-    jnz check_printable
-    mov al, 32
-    jmp do_print
-
-check_printable:
-    cmp al, 32
-    jb skip_char
-    cmp al, 126
-    ja skip_char
-
-do_print:
-    mov ah, 02h
-    mov dl, al
-    int 21h
-
-skip_char:
+fix:
+    cmp byte ptr [si], 0
+    jnz n_f
+    mov byte ptr [si], 32
+n_f:
+    inc si
     cmp si, di
-    jbe print_loop
-
-exit_prog:
+    jbe fix
+    mov cx, si
+    sub cx, dx
+    mov ah, 40h
+    mov bx, 1
+    int 21h
+empty:
     ret
 
 start_id  db ?
