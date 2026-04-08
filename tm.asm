@@ -170,6 +170,28 @@ found_right:
     cld
     mov si, dx
 
+print_loop:
+    lodsb
+    test al, al
+    jnz check_printable
+    mov al, 32
+    jmp do_print
+
+check_printable:
+    cmp al, 32
+    jb skip_char
+    cmp al, 126
+    ja skip_char
+
+do_print:
+    mov ah, 02h
+    mov dl, al
+    int 21h
+
+skip_char:
+    cmp si, di
+    jbe print_loop
+
 exit_prog:
     ret
 
