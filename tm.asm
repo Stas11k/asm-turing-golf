@@ -5,14 +5,14 @@ ORG 100h
 start:
     mov di, 8000h - 10000
     mov cx, 20001
-    xor al, al
     rep stosb
     mov si, 81h
 skip_spaces:
     lodsb
     cmp al, 32
     jbe skip_spaces
-    lea dx, [si-1]
+    dec si
+    mov dx, si
 
 find_end:
     lodsb
@@ -35,17 +35,17 @@ find_end:
 
 parse_main:
     lodsb
-    test al, al
+    or al, al
     jz load_tape_init
     cmp al, ';'
     je skip_l
     cmp al, 32
     jbe parse_main
     cmp al, '-'
-    je find_tape_start
+    je skip_t
     dec si
 
-parse_line_tokens:
+parse_tok:
     xor cx, cx
     xor dx, dx
 
@@ -67,23 +67,23 @@ gt_loop:
     ja gt_loop
     xchg ax, cx
     cmp dx, 1
-    jne store_token
+    jne store
     mov al, bl
     cmp al, 'L'
     je is_l
     cmp al, 'R'
-    jne store_token
+    jne store
     mov al, 1
-    jmp store_token
+    jmp store
 
 is_l:
     mov al, 0FFh
 
-store_token:
+store:
     stosb
     xchg ax, cx
     cmp al, 13
-    ja parse_line_tokens
+    ja parse_tok
     jmp parse_main
 
 skip_l:
@@ -92,10 +92,10 @@ skip_l:
     jne skip_l
     jmp parse_main
 
-find_tape_start:
+skip_t:
     lodsb
     cmp al, 10
-    jne find_tape_start
+    jne skip_t
 
 load_tape_init:
     mov di, 8000h
