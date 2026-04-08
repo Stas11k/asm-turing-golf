@@ -8,7 +8,6 @@ start:
     xor al, al
     rep stosb
     mov si, 81h
-
 skip_spaces:
     lodsb
     cmp al, 32
@@ -143,6 +142,35 @@ apply_rule:
     jmp exec_loop
 
 done:
+    mov si, 8000h - 10000
+    mov cx, 20001
+
+find_left:
+    lodsb
+    test al, al
+    jnz found_left
+    loop find_left
+    jmp exit_prog
+
+found_left:
+    dec si
+    mov dx, si
+    mov di, 8000h + 10000
+    mov cx, 20001
+    std
+
+find_right_loop:
+    mov al, [di]
+    test al, al
+    jnz found_right
+    dec di
+    loop find_right_loop
+
+found_right:
+    cld
+    mov si, dx
+
+exit_prog:
     ret
 
 start_id  db ?
