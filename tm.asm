@@ -7,18 +7,15 @@ start:
     mov cx, 20001
     rep stosb
     mov si, 81h
+    mov bl, [si-1]
+    mov [bx+si], bh
+
 skip_spaces:
     lodsb
     cmp al, 32
     jbe skip_spaces
     dec si
     mov dx, si
-
-find_end:
-    lodsb
-    cmp al, 13
-    jne find_end
-    mov [si-1], bh
 
     mov ax, 3D00h
     int 21h
