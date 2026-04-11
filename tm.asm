@@ -6,15 +6,9 @@ start:
     mov di, 8000h - 10000
     mov cx, 20001
     rep stosb
-    mov si, 81h
-    mov bl, [si-1]
-    mov [bx+si], bh
-
-skip_spaces:
-    lodsb
-    cmp al, 32
-    jbe skip_spaces
-    dec si
+    mov si, 82h
+    mov bl, [si-2]
+    mov [bx+si-1], bh
     mov dx, si
 
     mov ax, 3D00h
@@ -27,7 +21,8 @@ skip_spaces:
     xchg ax, di
     mov [file_buf + di], bh
 
-    mov si, offset file_buf
+    mov bx, 8000h
+    xchg si, dx
     mov di, offset start_id
 
 parse_main:
@@ -43,17 +38,24 @@ parse_main:
 
 skip_t:
     lodsb
+    or al, al
+    jz t_done
     cmp al, 10
     jne skip_t
-    mov bx, 8000h
+    mov di, bx
 
 copy_t:
     lodsb
     cmp al, 13
     jbe t_done
-    mov [bx], al
-    inc bx
+    stosb
     jmp copy_t
+
+skip_l:
+    lodsb
+    cmp al, 10
+    jne skip_l
+    jmp parse_main
 
 p_tok:
     dec si
@@ -91,14 +93,7 @@ store:
     ja parse_tok
     jmp parse_main
 
-skip_l:
-    lodsb
-    cmp al, 10
-    jne skip_l
-    jmp parse_main
-
 t_done:
-    mov bx, 8000h
     mov cx, word ptr [start_id]
 
 exec:
@@ -109,8 +104,6 @@ exec:
     mov si, offset rules_data
 
 find_r:
-    cmp si, di
-    jae done
     cmp [si], dx
     je appl
     add si, 5
@@ -121,7 +114,7 @@ appl:
     mov [bx], al
     xchg al, ah
     sub al, 'N'
-    je short mv
+    je mv
     sbb al, al
     or  al, 1
 mv:
@@ -144,18 +137,17 @@ done:
     inc cx
     std
     repe scasb
-    inc di
+    inc cx
+    push cx
 
 fix:
-    cmp byte ptr [si], 0
+    cmp [si], al
     jnz n_f
     mov byte ptr [si], 32
 n_f:
     inc si
-    cmp si, di
-    jbe fix
-    mov cx, si
-    sub cx, dx
+    loop fix
+    pop cx
     mov ah, 40h
     mov bx, 1
     int 21h
