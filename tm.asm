@@ -114,10 +114,8 @@ appl:
     mov [bx], al
     xchg al, ah
     sub al, 'N'
-    je mv
-    sbb al, al
-    or  al, 1
-mv:
+    sar al, 1
+    sar al, 1
     cbw
     add bx, ax
     mov cl, [si+2]
