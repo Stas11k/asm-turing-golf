@@ -101,13 +101,12 @@ exec:
     je done
     xchg cl, dl
     mov dh, [bx]
-    mov si, offset rules_data
+    mov si, offset rules_data-5
 
 find_r:
-    cmp [si], dx
-    je appl
     add si, 5
-    jmp find_r
+    cmp [si], dx
+    jne find_r
 
 appl:
     mov ax, [si+3]
