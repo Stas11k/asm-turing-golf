@@ -33,13 +33,29 @@ skip_spaces:
 parse_main:
     lodsb
     or al, al
-    jz no_tape
+    jz t_done
     cmp al, ';'
     je skip_l
     cmp al, 32
     jbe parse_main
     cmp al, '-'
-    je skip_t
+    jne p_tok
+
+skip_t:
+    lodsb
+    cmp al, 10
+    jne skip_t
+    mov bx, 8000h
+
+copy_t:
+    lodsb
+    cmp al, 13
+    jbe t_done
+    mov [bx], al
+    inc bx
+    jmp copy_t
+
+p_tok:
     dec si
 
 parse_tok:
@@ -80,7 +96,7 @@ store:
     stosb
     xchg ax, cx
     or al, al
-    jz no_tape
+    jz t_done
     cmp al, 13
     ja parse_tok
     jmp parse_main
@@ -91,38 +107,19 @@ skip_l:
     jne skip_l
     jmp parse_main
 
-skip_t:
-    lodsb
-    cmp al, 10
-    jne skip_t
-
-load_tape_init:
-    mov bx, 8000h
-    mov di, bx
-
-copy_t:
-    lodsb
-    cmp al, 13
-    jbe t_done
-    stosb
-    jmp copy_t
-
-no_tape:
-    mov bp, di
-    mov bx, 8000h
-
 t_done:
-    mov ax, word ptr [start_id]
+    mov bx, 8000h
+    mov cx, word ptr [start_id]
 
 exec:
-    cmp al, ah
+    cmp cl, ch
     je done
-    xchg al, dl
+    xchg cl, dl
     mov dh, [bx]
     mov si, offset rules_data
 
 find_r:
-    cmp si, bp
+    cmp si, di
     jae done
     cmp [si], dx
     je appl
@@ -135,7 +132,7 @@ appl:
     xchg al, ah
     cbw
     add bx, ax
-    mov al, [si+2]
+    mov cl, [si+2]
     jmp exec
 
 done:
