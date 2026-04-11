@@ -71,7 +71,6 @@ gt_skip:
     xor al, al
 
 gt_loop:
-    mov bl, al
     inc dx
     add cl, al
     rol cl, 1
@@ -81,16 +80,7 @@ gt_loop:
     xchg ax, cx
     dec dx
     jne store
-    mov al, bl
-    cmp al, 'R'
-    je is_r
-    cmp al, 'L'
-    jne store
-    mov al, 0FFh
-    jmp store
-
-is_r:
-    mov al, 1
+    ror al, 1
 
 store:
     stosb
@@ -130,29 +120,32 @@ appl:
     mov ax, [si+3]
     mov [bx], al
     xchg al, ah
+    sub al, 'N'
+    je short mv
+    sbb al, al
+    or  al, 1
+mv:
     cbw
     add bx, ax
     mov cl, [si+2]
     jmp exec
 
 done:
-    mov si, 8000h - 10000
+    mov di, 8000h - 10000
     mov cx, 20001
-f_l:
-    lodsb
-    or al, al
-    loopz f_l
+    xor al, al
+    repe scasb
     jz empty
-    dec si
-    mov dx, si
-    mov di, 8000h + 10000
-f_r:
-    cmp byte ptr [di], 0
-    jne f_r_ok
     dec di
-    jmp f_r
-f_r_ok:
-    mov si, dx
+    mov si, di
+    mov dx, di
+
+    mov di, 8000h + 10000
+    inc cx
+    std
+    repe scasb
+    inc di
+
 fix:
     cmp byte ptr [si], 0
     jnz n_f
