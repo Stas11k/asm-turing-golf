@@ -35,13 +35,15 @@ parse_main:
     jbe parse_main
     cmp al, '-'
     jne p_tok
+    mov di, bx
 
-skip_t:
+skip_l:
     lodsb
     cmp al, 10
-    ja skip_t
+    ja skip_l
     jnz t_done
-    mov di, bx
+    cmp di, bx
+    jne parse_main
 
 copy_t:
     lodsb
@@ -49,12 +51,6 @@ copy_t:
     jbe t_done
     stosb
     jmp copy_t
-
-skip_l:
-    lodsb
-    cmp al, 10
-    jne skip_l
-    jmp parse_main
 
 p_tok:
     dec si
