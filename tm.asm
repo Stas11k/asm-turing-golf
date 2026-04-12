@@ -11,7 +11,7 @@ start:
     mov [bx+si-1], bh
     mov dx, si
 
-    mov ax, 3D00h
+    mov ah, 3Dh
     int 21h
     xchg ax, bx
     mov ah, 3Fh
@@ -21,7 +21,7 @@ start:
     xchg ax, di
     mov [file_buf + di], bh
 
-    mov bx, 8000h
+    mov bh, 80h
     xchg si, dx
     mov di, offset start_id
 
@@ -38,10 +38,9 @@ parse_main:
 
 skip_t:
     lodsb
-    or al, al
-    jz t_done
     cmp al, 10
-    jne skip_t
+    ja skip_t
+    jnz t_done
     mov di, bx
 
 copy_t:
@@ -111,12 +110,13 @@ find_r:
 appl:
     mov ax, [si+3]
     mov [bx], al
-    xchg al, ah
-    sub al, 'N'
-    sar al, 1
-    sar al, 1
-    cbw
-    add bx, ax
+    dec bx
+    cmp ah, 'N'
+    jb mv
+    inc bx
+    je mv
+    inc bx
+mv:
     mov cl, [si+2]
     jmp exec
 
@@ -126,9 +126,9 @@ done:
     xor al, al
     repe scasb
     jz empty
-    dec di
-    mov si, di
-    mov dx, di
+    xchg si, di
+    dec si
+    mov dx, si
 
     mov di, 8000h + 10000
     inc cx
