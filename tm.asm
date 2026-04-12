@@ -124,9 +124,8 @@ done:
     xor al, al
     repe scasb
     jz empty
-    xchg si, di
-    dec si
-    mov dx, si
+    dec di
+    mov dx, di
 
     mov di, 8000h + 10000
     inc cx
@@ -134,13 +133,14 @@ done:
     repe scasb
     inc cx
     push cx
+    inc di
 
 fix:
-    cmp [si], al
+    cmp [di], al
     jnz n_f
-    mov byte ptr [si], 32
+    mov byte ptr [di], 32
 n_f:
-    inc si
+    dec di
     loop fix
     pop cx
     mov ah, 40h
