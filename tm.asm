@@ -6,9 +6,11 @@ start:
     mov di, 8000h - 10000
     mov cx, 20001
     rep stosb
-    mov si, 82h
-    mov bl, [si-2]
-    mov [bx+si-1], bh
+    mov si, 80h
+    lodsb
+    xchg ax, bx
+    mov [bx+si], bh
+    inc si
     mov dx, si
 
     mov ah, 3Dh
