@@ -21,7 +21,7 @@ start:
     mov dx, offset file_buf
     int 21h
     xchg ax, di
-    mov [file_buf + di], bh
+    mov byte ptr [file_buf + di], bh
 
     mov bx, 8000h
     xchg si, dx
@@ -80,20 +80,18 @@ gt_loop:
 store:
     stosw
     xchg ax, cx
-    or al, al
-    jz t_done
     cmp al, 13
     ja parse_tok
-    jmp parse_main
+    or al, al
+    jnz parse_main
 
 t_done:
     mov cx, [start_id]
 
 exec:
-    cmp cx, [halt_id]
+    cmp cx,[halt_id]
     je done
     mov dl, [bx]
-    xor dh, dh
     mov si, offset rules_data-10
 
 find_r:
@@ -106,22 +104,18 @@ find_r:
 appl:
     mov al, [si+6]
     mov [bx], al
-    dec bx
     mov al, [si+8]
-    cmp al, 'N'
-    jb mv
-    inc bx
-    cmp al, 'N'
-    je mv
-    inc bx
-mv:
+    sub al, 'N'
+    sar al, 2
+    cbw
+    add bx, ax
     mov cx, [si+4]
     jmp exec
 
 done:
     mov di, 8000h - 10000
     mov cx, 20001
-    xor al, al
+    xor ax, ax
     repe scasb
     jz empty
     dec di
@@ -143,8 +137,9 @@ n_f:
     dec di
     loop fix
     pop cx
+    xchg ax, bx
+    inc bx
     mov ah, 40h
-    mov bx, 1
     int 21h
 empty:
     ret
