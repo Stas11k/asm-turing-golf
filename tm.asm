@@ -23,7 +23,7 @@ start:
     xchg ax, di
     mov [file_buf + di], bh
 
-    mov bh, 80h
+    mov bx, 8000h
     xchg si, dx
     mov di, offset start_id
 
@@ -59,7 +59,6 @@ p_tok:
 
 parse_tok:
     xor cx, cx
-    xor dx, dx
 
 gt_skip:
     lodsb
@@ -70,19 +69,16 @@ gt_skip:
     xor al, al
 
 gt_loop:
-    inc dx
+    shl cx, 4
     add cl, al
-    rol cl, 1
+    adc ch, dh
     lodsb
     cmp al, 32
     ja gt_loop
     xchg ax, cx
-    dec dx
-    jne store
-    ror al, 1
 
 store:
-    stosb
+    stosw
     xchg ax, cx
     or al, al
     jz t_done
@@ -91,31 +87,35 @@ store:
     jmp parse_main
 
 t_done:
-    mov cx, word ptr [start_id]
+    mov cx, [start_id]
 
 exec:
-    cmp cl, ch
+    cmp cx, [halt_id]
     je done
-    xchg cl, dl
-    mov dh, [bx]
-    mov si, offset rules_data-5
+    mov dl, [bx]
+    xor dh, dh
+    mov si, offset rules_data-10
 
 find_r:
-    add si, 5
-    cmp [si], dx
+    add si, 10
+    cmp [si], cx
+    jne find_r
+    cmp [si+2], dx
     jne find_r
 
 appl:
-    mov ax, [si+3]
+    mov al, [si+6]
     mov [bx], al
     dec bx
-    cmp ah, 'N'
+    mov al, [si+8]
+    cmp al, 'N'
     jb mv
     inc bx
+    cmp al, 'N'
     je mv
     inc bx
 mv:
-    mov cl, [si+2]
+    mov cx, [si+4]
     jmp exec
 
 done:
@@ -149,8 +149,8 @@ n_f:
 empty:
     ret
 
-start_id  db ?
-halt_id   db ?
+start_id  dw ?
+halt_id   dw ?
 rules_data label byte
 file_buf  equ start_id + 3000
 
