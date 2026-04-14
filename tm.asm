@@ -37,6 +37,8 @@ parse_main:
     jbe parse_main
     cmp al, '-'
     jne p_tok
+    cmp byte ptr [si+2], 32
+    ja p_tok
     mov di, bx
 
 skip_l:
@@ -69,7 +71,7 @@ gt_skip:
     xor al, al
 
 gt_loop:
-    shl cx, 4
+    rol cx, 4
     add cl, al
     adc ch, dh
     lodsb
@@ -80,8 +82,11 @@ gt_loop:
 store:
     stosw
     xchg ax, cx
-    cmp al, 13
+    cmp al, 32
+    jne s1
+    cmp byte ptr [si], 13
     ja parse_tok
+s1:
     or al, al
     jnz parse_main
 
