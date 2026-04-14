@@ -36,9 +36,9 @@ parse_main:
     cmp al, 32
     jbe parse_main
     cmp al, '-'
-    jne p_tok
+    jne parse_tok
     cmp byte ptr [si+2], 32
-    ja p_tok
+    ja parse_tok
     mov di, bx
 
 skip_l:
@@ -56,24 +56,21 @@ copy_t:
     stosb
     jmp copy_t
 
-p_tok:
-    dec si
-
-parse_tok:
-    xor cx, cx
-
 gt_skip:
     lodsb
     cmp al, 32
     jbe gt_skip
-    cmp al, '_'
-    jne gt_loop
-    xor al, al
+
+parse_tok:
+    xor cx, cx
 
 gt_loop:
+    cmp al, '_'
+    jne gt1
+    xor al, al
+gt1:
     rol cx, 4
     add cl, al
-    adc ch, dh
     lodsb
     cmp al, 32
     ja gt_loop
@@ -82,10 +79,9 @@ gt_loop:
 store:
     stosw
     xchg ax, cx
-    cmp al, 32
     jne s1
     cmp byte ptr [si], 13
-    ja parse_tok
+    ja gt_skip
 s1:
     or al, al
     jnz parse_main
