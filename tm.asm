@@ -56,11 +56,6 @@ copy_t:
     stosb
     jmp copy_t
 
-gt_skip:
-    lodsb
-    cmp al, 32
-    jbe gt_skip
-
 parse_tok:
     xor cx, cx
 
@@ -78,13 +73,8 @@ gt1:
 
 store:
     stosw
-    xchg ax, cx
-    jne s1
-    cmp byte ptr [si], 13
-    ja gt_skip
-s1:
-    or al, al
-    jnz parse_main
+    dec si
+    jmp parse_main
 
 t_done:
     mov cx, [start_id]
