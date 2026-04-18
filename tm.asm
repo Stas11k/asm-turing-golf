@@ -77,17 +77,17 @@ store:
     jmp parse_main
 
 t_done:
-    mov cx, [start_id]
+    mov ax, [start_id]
 
 exec:
-    cmp cx,[halt_id]
+    cmp ax,[halt_id]
     je done
     mov dl, [bx]
     mov si, offset rules_data-10
 
 find_r:
     add si, 10
-    cmp [si], cx
+    cmp [si], ax
     jne find_r
     cmp [si+2], dx
     jne find_r
@@ -100,7 +100,7 @@ appl:
     sar al, 2
     cbw
     add bx, ax
-    mov cx, [si+4]
+    mov ax, [si+4]
     jmp exec
 
 done:
