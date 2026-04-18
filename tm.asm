@@ -3,8 +3,8 @@
 ORG 100h
 
 start:
-    mov di, 8000h - 10000
-    mov cx, 20001
+    mov di, 22768
+    mov ch, 4Eh
     rep stosb
     mov si, 80h
     lodsb
@@ -131,11 +131,10 @@ done:
     inc di
 
 fix:
-    cmp [di], al
+    scasb
     jnz n_f
-    mov byte ptr [di], 32
+    mov [di+1], byte ptr 32
 n_f:
-    dec di
     loop fix
     pop cx
     xchg ax, bx
